@@ -3,128 +3,602 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบเข้าสู่ระบบช่างซ่อม</title>
+    <title>ระบบบันทึกประวัติการซ่อมระบบไฟฟ้าเครื่องจักร</title>
+
+    <!-- Open Graph Meta Tags สำหรับแสดงรูปตัวอย่างเมื่อแชร์ลง LINE / Facebook -->
+    <meta property="og:title" content="ระบบบันทึกประวัติการซ่อมระบบไฟฟ้าเครื่องจักร">
+    <meta property="og:description" content="เลือกรักษาอุปกรณ์ไฟฟ้าอ้างอิงตาม Single Line / Circuit Diagram พร้อมระบบแยกค้นหาประวัติ">
+    <meta property="og:image" content="https://i.postimg.cc/ydc4tDL1/Electrical-Repair-Record-Logo-De-202608251148.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Prompt) -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+            font-family: 'Prompt', sans-serif;
+            background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), 
+                              url('https://i.postimg.cc/Fs6xQ1dw/Blogi-Miten-kunnossapitojarjestelma-tukee-kunnossapidon-mittaamista.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
         }
-        .login-card {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 380px;
-        }
-        .login-card h2 {
-            margin-bottom: 20px;
-            color: #333;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 18px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            color: #555;
-            font-weight: 600;
-        }
-        .form-group select, 
-        .form-group input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-login:hover {
-            background-color: #0056b3;
-        }
-        #error-msg {
-            color: #dc3545;
-            font-size: 14px;
-            margin-top: 12px;
-            text-align: center;
-            display: none;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
-<body>
+<body class="text-slate-800 pb-12">
 
-<div class="login-card">
-    <h2>เข้าสู่ระบบผู้ซ่อม</h2>
-    <form id="loginForm">
-        <div class="form-group">
-            <label for="technician">ชื่อผู้ซ่อม (ID)</label>
-            <select id="technician" required>
-                <option value="" disabled selected>-- เลือกชื่อผู้ซ่อม --</option>
-                <option value="0308">อมร อมรกุล</option>
-                <option value="0107">ปัญณวัฒน์ แสงนาค</option>
-                <option value="0290">ชาติชาย หนิ้ววิยะวงค์</option>
-                <option value="0398">สงกรานต์ ช่องสูงเนิน</option>
-                <option value="0586">วิมลรัตน์ ยุทธรศาร</option>
-                <option value="0626">ประมวลศักดิ์ ทูลฉลอง</option>
-                <option value="0628">เอกพนธ์ พาซอและ</option>
-                <option value="0749">รัชชานนท์ อาจอ</option>
-                <option value="0267">อดิศักดิ์ สุขดี</option>
-            </select>
+    <!-- Login Modal / Overlay -->
+    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 hidden">
+        <div class="glass-card rounded-2xl p-8 shadow-2xl border border-white/20 w-full max-w-md">
+            <div class="text-center mb-6">
+                <img src="https://i.postimg.cc/ydc4tDL1/Electrical-Repair-Record-Logo-De-202608251148.jpg" alt="Logo" class="w-16 h-16 object-cover rounded-xl mx-auto mb-3 shadow-md border border-slate-600">
+                <h2 class="text-xl font-bold text-slate-900">เข้าสู่ระบบผู้ซ่อม</h2>
+                <p class="text-xs text-slate-500 mt-1">ระบบบันทึกประวัติการซ่อมระบบไฟฟ้าเครื่องจักร</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้ซ่อม <span class="text-red-500">*</span></label>
+                    <select id="loginTechSelect" required class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white">
+                        <option value="" disabled selected>-- เลือกชื่อผู้ซ่อม --</option>
+                        <option value="0308">อมร อมรกุล</option>
+                        <option value="0107">ปัญณวัฒน์ แสงนาค</option>
+                        <option value="0290">ชาติชาย หนิ้ววิยะวงค์</option>
+                        <option value="0398">สงกรานต์ ช่องสูงเนิน</option>
+                        <option value="0586">วิมลรัตน์ ยุทธรศาร</option>
+                        <option value="0626">ประมวลศักดิ์ ทูลฉลอง</option>
+                        <option value="0628">เอกพนธ์ พาซอและ</option>
+                        <option value="0749">รัชชานนท์ อาจอ</option>
+                        <option value="0267">อดิศักดิ์ สุขดี</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">รหัสผ่าน (รหัสพนักงาน 4 หลัก) <span class="text-red-500">*</span></label>
+                    <input type="password" id="loginPassword" placeholder="กรอกรหัสพนักงาน 4 หลัก" maxlength="4" required class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white">
+                </div>
+                <div id="loginError" class="text-red-600 text-xs text-center font-medium hidden">รหัสพนักงานไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-200 mt-2">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
         </div>
+    </div>
 
-        <div class="form-group">
-            <label for="password">รหัสผ่าน (รหัสพนักงาน)</label>
-            <input type="password" id="password" placeholder="กรอกรหัสพนักงาน 4 หลัก" maxlength="4" required>
+    <!-- Header -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-700 text-white py-6 px-4 shadow-xl mb-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <!-- โลโก้ระบบ -->
+                <img src="https://i.postimg.cc/ydc4tDL1/Electrical-Repair-Record-Logo-De-202608251148.jpg" 
+                     alt="System Logo" 
+                     class="w-14 h-14 object-cover rounded-xl border border-slate-600 shadow-md flex-shrink-0">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide">ระบบบันทึกประวัติการซ่อมระบบไฟฟ้าเครื่องจักร</h1>
+                    <p class="text-xs text-slate-400 mt-1">เลือกรักษาอุปกรณ์ไฟฟ้าอ้างอิงตาม Single Line / Circuit Diagram พร้อมระบบแยกค้นหาประวัติ</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 bg-slate-800/80 px-4 py-2 rounded-lg border border-slate-700">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                    <span class="text-sm font-medium">ผู้ใช้งาน: <span id="currentUser" class="text-amber-300 font-bold">-</span></span>
+                </div>
+                <button onclick="changeUser()" class="text-xs bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded transition">ออกจากระบบ</button>
+            </div>
         </div>
+    </header>
 
-        <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
-        <div id="error-msg">รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>
-    </form>
-</div>
-
-<script>
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        const selectedTech = document.getElementById('technician');
-        const correctPassword = selectedTech.value;
-        const inputPassword = document.getElementById('password').value.trim();
-        const errorMsg = document.getElementById('error-msg');
-        const selectedName = selectedTech.options[selectedTech.selectedIndex].text;
+        <!-- Left Column: Repair Form -->
+        <section class="lg:col-span-7 space-y-6">
+            <div class="glass-card rounded-2xl p-6 shadow-2xl border border-white/20">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-pen-to-square text-blue-600"></i> กรอกข้อมูลการซ่อมไฟฟ้า
+                </h2>
 
-        if (inputPassword === correctPassword) {
-            errorMsg.style.display = 'none';
-            alert('เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับ คุณ' + selectedName);
+                <form id="repairForm" onsubmit="handleSaveRecord(event)" class="space-y-5">
+                    <!-- User Name Input -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้ซ่อม <span class="text-red-500">*</span></label>
+                        <input type="text" id="technicianName" required readonly class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-100 text-slate-600 font-semibold cursor-not-allowed">
+                    </div>
+
+                    <!-- Step 1: Select Category & Cabinet Number -->
+                    <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-100 space-y-3">
+                        <div class="flex items-center gap-2 text-blue-800 font-semibold text-sm">
+                            <span class="bg-blue-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">1</span>
+                            เลือกประเภทเครื่องจักร/ตู้ควบคุม
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                            <div class="md:col-span-7">
+                                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-gear"></i> ประเภทระบบไฟฟ้า</label>
+                                <select id="sysCategory" onchange="onCategoryChange()" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="">-- เลือกระบบไฟฟ้า --</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-5">
+                                <label class="block text-xs font-medium text-slate-600 mb-1"><i class="fa-solid fa-hashtag"></i> เบอร์เครื่อง/ตู้ (4 หลัก)</label>
+                                <div class="flex gap-2">
+                                    <select id="sysNumber" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                                        <option value="">-- เลือกเบอร์ --</option>
+                                    </select>
+                                    <button type="button" onclick="addNewNumberPrompt()" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-2 rounded-lg text-xs flex items-center gap-1 font-medium transition whitespace-nowrap">
+                                        <i class="fa-solid fa-plus"></i> เพิ่มเบอร์
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Select Replacement Parts -->
+                    <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-100 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-amber-900 font-semibold text-sm">
+                                <span class="bg-amber-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">2</span>
+                                เลือกรายการอุปกรณ์ไฟฟ้าที่เปลี่ยน/ใช้อะไหล่
+                            </div>
+                            <span class="text-xs text-amber-700">*คลิกเลือกได้มากกว่า 1 รายการ</span>
+                        </div>
+                        
+                        <div id="partsContainer" class="min-h-[120px] bg-white border border-slate-200 rounded-lg p-3 max-h-72 overflow-y-auto space-y-2">
+                            <p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-hand-pointer mr-1"></i> กรุณายืนยันเลือกประเภทระบบในขั้นตอนที่ 1 ก่อน</p>
+                        </div>
+                    </div>
+
+                    <!-- Cost Summary & Save -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-100 p-4 rounded-xl border border-slate-200">
+                        <div>
+                            <span class="text-xs text-slate-500 block">ราคารวมค่าอุปกรณ์ไฟฟ้า:</span>
+                            <span id="totalCost" class="text-2xl font-bold text-emerald-600">0 บาท</span>
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> บันทึกประวัติการซ่อม
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Right Column: Settings & History -->
+        <section class="lg:col-span-5 space-y-6">
             
-            // บันทึกข้อมูลผู้ใช้งานไว้ใน Session
-            sessionStorage.setItem('loggedInUser', selectedName);
-            sessionStorage.setItem('empId', correctPassword);
+            <!-- Category & Equipment Management -->
+            <div class="glass-card rounded-2xl p-6 shadow-2xl border border-white/20 space-y-4">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 border-b pb-3">
+                    <i class="fa-solid fa-sliders text-indigo-600"></i> จัดการประเภทระบบและอุปกรณ์ไฟฟ้า
+                </h2>
 
-            // เปลี่ยนหน้าไปยังระบบซ่อม (แก้ไข URL ตามหน้าหลักของคุณ)
-            // window.location.href = 'dashboard.html';
-        } else {
-            errorMsg.style.display = 'block';
+                <!-- Add New System -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-slate-600"><i class="fa-solid fa-plus text-emerald-500"></i> เพิ่มประเภทระบบไฟฟ้าใหม่</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="newSysInput" placeholder="เช่น ระบบสายพานลำเลียง (Conveyor System)" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="addNewSystem()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">เพิ่มระบบ</button>
+                    </div>
+                </div>
+
+                <hr class="border-slate-200">
+
+                <!-- Add New Equipment Item -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-slate-600"><i class="fa-solid fa-wrench text-amber-500"></i> เพิ่มรายการอุปกรณ์เข้าประเภทระบบ</label>
+                    <select id="targetSysSelect" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs mb-2">
+                        <option value="">-- เลือกประเภทระบบที่ต้องการเพิ่มอุปกรณ์ --</option>
+                    </select>
+                    <div class="grid grid-cols-7 gap-2">
+                        <input type="text" id="newItemName" placeholder="ชื่ออุปกรณ์ (เช่น เซนเซอร์ Proximity)" class="col-span-4 px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="number" id="newItemPrice" placeholder="ราคา (บาท)" class="col-span-3 px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <button onclick="addNewEquipment()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-xs font-semibold mt-2 shadow flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-plus"></i> เพิ่มอุปกรณ์และราคา
+                    </button>
+                </div>
+            </div>
+
+            <!-- Repair History -->
+            <div class="glass-card rounded-2xl p-6 shadow-2xl border border-white/20 space-y-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-purple-600"></i> ประวัติการซ่อมระบบไฟฟ้า
+                    </h2>
+                    <button onclick="clearHistory()" class="text-xs bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1 rounded transition">ล้างประวัติ</button>
+                </div>
+
+                <!-- History Filters -->
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase">ประเภทระบบ</label>
+                        <select id="filterSys" onchange="renderHistory()" class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs">
+                            <option value="all">-- ทั้งหมด --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase">เบอร์เครื่อง/ตู้</label>
+                        <select id="filterNum" onchange="renderHistory()" class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs">
+                            <option value="all">-- ทั้งหมด --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- History List -->
+                <div id="historyList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // --- 1. DEFAULT DATA CONFIGURATION ---
+        const defaultCategories = {
+            "overhead_crane": "Overhead Crane 10 Ton",
+            "flying_bucket": "Flying Bucket",
+            "carousel_system": "ระบบ Carousel"
+        };
+
+        const defaultNumbers = {
+            "overhead_crane": ["0001", "0002", "0003", "0004", "0005"],
+            "flying_bucket": ["0001", "0002", "0003", "0004"],
+            "carousel_system": ["0001", "0002"]
+        };
+
+        const defaultPartsData = {
+            "overhead_crane": [
+                { id: "CR-01", name: "ชุดเบรกฮอยส์ (Hoist Brake Assembly)", price: 4500 },
+                { id: "CR-02", name: "ลิมิตสวิตช์ตัดระยะขึ้น-ลง (Limit Switch)", price: 1200 },
+                { id: "CR-03", name: "เพนแดนท์สวิตช์ควบคุม (Pendant Control Switch)", price: 2800 },
+                { id: "CR-04", name: "แมกเนติกคอนแทกเตอร์ (Main Magnetic Contactor)", price: 2200 },
+                { id: "CR-05", name: "อินเวอร์เตอร์รอกยก (Inverter Drive)", price: 8500 }
+            ],
+            "flying_bucket": [
+                { id: "FB-01", name: "เซนเซอร์ตรวจจับตำแหน่ง (Proximity Sensor)", price: 950 },
+                { id: "FB-02", name: "มอเตอร์ขับเคลื่อนล้อลาก (Drive Motor 3PH)", price: 6800 },
+                { id: "FB-03", name: "ชุดแปรงถ่านรับกระแสไฟ (Conductor Bar Collector)", price: 1500 },
+                { id: "FB-04", name: "รีเลย์ควบคุมทิศทาง (Forward/Reverse Relay)", price: 650 }
+            ],
+            "carousel_system": [
+                { id: "CS-01", name: "อินเวอร์เตอร์ควบคุมความเร็ว (VFD Inverter 5.5kW)", price: 12500 },
+                { id: "CS-02", name: "โฟโตเซนเซอร์นับรอบ (Photoelectric Sensor)", price: 1100 },
+                { id: "CS-03", name: "สวิตช์หยุดฉุกเฉิน (Emergency Stop Button)", price: 450 },
+                { id: "CS-04", name: "เพาเวอร์ซัพพลาย 24VDC (Power Supply Unit)", price: 1800 }
+            ]
+        };
+
+        // --- 2. LOCALSTORAGE STATE MANAGEMENT ---
+        let categories = JSON.parse(localStorage.getItem('sys_categories_v2')) || defaultCategories;
+        let machineNumbers = JSON.parse(localStorage.getItem('sys_numbers_v2')) || defaultNumbers;
+        let partsData = JSON.parse(localStorage.getItem('sys_parts_v2')) || defaultPartsData;
+        let records = JSON.parse(localStorage.getItem('sys_records_v2')) || [];
+
+        function saveData() {
+            localStorage.setItem('sys_categories_v2', JSON.stringify(categories));
+            localStorage.setItem('sys_numbers_v2', JSON.stringify(machineNumbers));
+            localStorage.setItem('sys_parts_v2', JSON.stringify(partsData));
+            localStorage.setItem('sys_records_v2', JSON.stringify(records));
         }
-    });
-</script>
 
+        function initStorageForce() {
+            if (!localStorage.getItem('sys_initialized_v2')) {
+                localStorage.setItem('sys_categories_v2', JSON.stringify(defaultCategories));
+                localStorage.setItem('sys_numbers_v2', JSON.stringify(defaultNumbers));
+                localStorage.setItem('sys_parts_v2', JSON.stringify(defaultPartsData));
+                localStorage.setItem('sys_records_v2', JSON.stringify([]));
+                localStorage.setItem('sys_initialized_v2', 'true');
+                
+                categories = defaultCategories;
+                machineNumbers = defaultNumbers;
+                partsData = defaultPartsData;
+                records = [];
+            }
+        }
+
+        // --- 3. AUTHENTICATION LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initStorageForce();
+            checkLoginStatus();
+            populateCategorySelects();
+            renderHistory();
+        });
+
+        function checkLoginStatus() {
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            const loginModal = document.getElementById('loginModal');
+            if (!loggedInUser) {
+                loginModal.classList.remove('hidden');
+            } else {
+                loginModal.classList.add('hidden');
+                document.getElementById('currentUser').innerText = loggedInUser;
+                document.getElementById('technicianName').value = loggedInUser;
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const techSelect = document.getElementById('loginTechSelect');
+            const correctPassword = techSelect.value;
+            const inputPassword = document.getElementById('loginPassword').value.trim();
+            const errorMsg = document.getElementById('loginError');
+            const selectedName = techSelect.options[techSelect.selectedIndex].text;
+
+            if (inputPassword === correctPassword) {
+                errorMsg.classList.add('hidden');
+                sessionStorage.setItem('loggedInUser', selectedName);
+                
+                document.getElementById('currentUser').innerText = selectedName;
+                document.getElementById('technicianName').value = selectedName;
+                document.getElementById('loginModal').classList.add('hidden');
+                
+                // ล้างค่าในฟอร์ม Login
+                document.getElementById('loginForm').reset();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function changeUser() {
+            sessionStorage.removeItem('loggedInUser');
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginTechSelect').value = '';
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function populateCategorySelects() {
+            const sysCategory = document.getElementById('sysCategory');
+            const targetSysSelect = document.getElementById('targetSysSelect');
+            const filterSys = document.getElementById('filterSys');
+
+            sysCategory.innerHTML = '<option value="">-- เลือกระบบไฟฟ้า --</option>';
+            targetSysSelect.innerHTML = '<option value="">-- เลือกประเภทระบบที่ต้องการเพิ่มอุปกรณ์ --</option>';
+            filterSys.innerHTML = '<option value="all">-- ทั้งหมด --</option>';
+
+            for (const [key, name] of Object.entries(categories)) {
+                sysCategory.innerHTML += `<option value="${key}">${name}</option>`;
+                targetSysSelect.innerHTML += `<option value="${key}">${name}</option>`;
+                filterSys.innerHTML += `<option value="${key}">${name}</option>`;
+            }
+        }
+
+        // --- 4. FORM INTERACTION LOGIC ---
+        function onCategoryChange() {
+            const catKey = document.getElementById('sysCategory').value;
+            const numSelect = document.getElementById('sysNumber');
+            const partsContainer = document.getElementById('partsContainer');
+
+            numSelect.innerHTML = '<option value="">-- เลือกเบอร์ --</option>';
+            partsContainer.innerHTML = '';
+            document.getElementById('totalCost').innerText = '0 บาท';
+
+            if (!catKey) {
+                partsContainer.innerHTML = '<p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-hand-pointer mr-1"></i> กรุณายืนยันเลือกประเภทระบบในขั้นตอนที่ 1 ก่อน</p>';
+                return;
+            }
+
+            // Populate Numbers
+            if (machineNumbers[catKey]) {
+                machineNumbers[catKey].forEach(num => {
+                    numSelect.innerHTML += `<option value="${num}">${num}</option>`;
+                });
+            }
+
+            // Populate Checkbox Parts
+            if (partsData[catKey] && partsData[catKey].length > 0) {
+                partsData[catKey].forEach(part => {
+                    const itemHtml = `
+                        <label class="flex items-center justify-between p-2 rounded hover:bg-slate-50 border border-slate-100 cursor-pointer transition">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="selectedParts" value="${part.id}" data-price="${part.price}" data-name="${part.name}" onchange="calculateTotalCost()" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                <span class="text-xs text-slate-700 font-medium">[${part.id}] ${part.name}</span>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500">${part.price.toLocaleString()} ฿</span>
+                        </label>
+                    `;
+                    partsContainer.innerHTML += itemHtml;
+                });
+            } else {
+                partsContainer.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">ไม่มีรายการอุปกรณ์ในระบบนี้ สามารถเพิ่มรายการได้ในเมนูด้านขวา</p>';
+            }
+
+            updateFilterNumbers(catKey);
+        }
+
+        function calculateTotalCost() {
+            const checkboxes = document.querySelectorAll('input[name="selectedParts"]:checked');
+            let total = 0;
+            checkboxes.forEach(cb => {
+                total += parseFloat(cb.getAttribute('data-price')) || 0;
+            });
+            document.getElementById('totalCost').innerText = `${total.toLocaleString()} บาท`;
+        }
+
+        // --- 5. MANAGEMENT ACTIONS ---
+        function addNewNumberPrompt() {
+            const catKey = document.getElementById('sysCategory').value;
+            if (!catKey) {
+                alert('กรุณาเลือกประเภทระบบไฟฟ้าก่อนทำการเพิ่มเบอร์');
+                return;
+            }
+            const newNum = prompt('กรอกหมายเลขเครื่อง/ตู้ใหม่ (เช่น 0006):');
+            if (newNum && newNum.trim() !== '') {
+                const formattedNum = newNum.trim().padStart(4, '0');
+                if (!machineNumbers[catKey]) machineNumbers[catKey] = [];
+                if (!machineNumbers[catKey].includes(formattedNum)) {
+                    machineNumbers[catKey].push(formattedNum);
+                    machineNumbers[catKey].sort();
+                    saveData();
+                    onCategoryChange();
+                    document.getElementById('sysNumber').value = formattedNum;
+                } else {
+                    alert('หมายเลขนี้มีอยู่แล้วในระบบ');
+                }
+            }
+        }
+
+        function addNewSystem() {
+            const nameInput = document.getElementById('newSysInput');
+            const sysName = nameInput.value.trim();
+            if (!sysName) {
+                alert('กรุณากรอกชื่อประเภทระบบไฟฟ้า');
+                return;
+            }
+
+            const sysKey = 'sys_' + Date.now();
+            categories[sysKey] = sysName;
+            machineNumbers[sysKey] = ["0001"];
+            partsData[sysKey] = [];
+            
+            saveData();
+            populateCategorySelects();
+            nameInput.value = '';
+            alert(`เพิ่มระบบ "${sysName}" สำเร็จ!`);
+        }
+
+        function addNewEquipment() {
+            const targetSys = document.getElementById('targetSysSelect').value;
+            const name = document.getElementById('newItemName').value.trim();
+            const price = parseFloat(document.getElementById('newItemPrice').value);
+
+            if (!targetSys) {
+                alert('กรุณาเลือกประเภทระบบที่ต้องการเพิ่มอุปกรณ์');
+                return;
+            }
+            if (!name || isNaN(price)) {
+                alert('กรุณากรอกชื่ออุปกรณ์และราคาให้ถูกต้อง');
+                return;
+            }
+
+            if (!partsData[targetSys]) partsData[targetSys] = [];
+            
+            const newId = 'EQ-' + String(partsData[targetSys].length + 1).padStart(2, '0');
+            partsData[targetSys].push({ id: newId, name: name, price: price });
+
+            saveData();
+            document.getElementById('newItemName').value = '';
+            document.getElementById('newItemPrice').value = '';
+            
+            if (document.getElementById('sysCategory').value === targetSys) {
+                onCategoryChange();
+            }
+            alert('เพิ่มอุปกรณ์เรียบร้อยแล้ว');
+        }
+
+        // --- 6. RECORD & HISTORY MANAGEMENT ---
+        function handleSaveRecord(e) {
+            e.preventDefault();
+            const technician = document.getElementById('technicianName').value;
+            const sysCategoryKey = document.getElementById('sysCategory').value;
+            const sysNumber = document.getElementById('sysNumber').value;
+
+            const selectedCheckboxes = document.querySelectorAll('input[name="selectedParts"]:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('กรุณาเลือกรายการอุปกรณ์ไฟฟ้าที่ทำการซ่อม/เปลี่ยนอย่างน้อย 1 รายการ');
+                return;
+            }
+
+            const usedParts = [];
+            let totalCost = 0;
+            selectedCheckboxes.forEach(cb => {
+                const cost = parseFloat(cb.getAttribute('data-price'));
+                usedParts.push({
+                    id: cb.value,
+                    name: cb.getAttribute('data-name'),
+                    price: cost
+                });
+                totalCost += cost;
+            });
+
+            const newRecord = {
+                id: Date.now(),
+                date: new Date().toLocaleString('th-TH'),
+                technician: technician,
+                sysCategoryKey: sysCategoryKey,
+                sysCategoryName: categories[sysCategoryKey],
+                sysNumber: sysNumber,
+                parts: usedParts,
+                totalCost: totalCost
+            };
+
+            records.unshift(newRecord);
+            saveData();
+            renderHistory();
+
+            document.getElementById('sysCategory').value = '';
+            onCategoryChange();
+            alert('บันทึกประวัติการซ่อมสำเร็จ!');
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            const filterSys = document.getElementById('filterSys').value;
+            const filterNum = document.getElementById('filterNum').value;
+
+            historyList.innerHTML = '';
+
+            const filteredRecords = records.filter(rec => {
+                const matchSys = (filterSys === 'all' || rec.sysCategoryKey === filterSys);
+                const matchNum = (filterNum === 'all' || rec.sysNumber === filterNum);
+                return matchSys && matchNum;
+            });
+
+            if (filteredRecords.length === 0) {
+                historyList.innerHTML = '<p class="text-xs text-slate-400 text-center py-6">ไม่พบประวัติการซ่อม</p>';
+                return;
+            }
+
+            filteredRecords.forEach(rec => {
+                const partsText = rec.parts.map(p => `• ${p.name} (${p.price.toLocaleString()} ฿)`).join('<br>');
+                const itemHtml = `
+                    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm space-y-1.5 hover:border-purple-300 transition">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold text-slate-800">${rec.sysCategoryName}</span>
+                                <span class="text-xs bg-slate-800 text-amber-300 px-1.5 py-0.5 rounded ml-1 font-mono">No. ${rec.sysNumber}</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400"><i class="fa-regular fa-clock"></i> ${rec.date}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 pl-2 border-l-2 border-slate-200 py-0.5">
+                            ${partsText}
+                        </div>
+                        <div class="flex justify-between items-center text-xs pt-1 border-t border-slate-100">
+                            <span class="text-slate-500"><i class="fa-solid fa-user-gear text-xs"></i> ${rec.technician}</span>
+                            <span class="font-bold text-emerald-600">รวม ${rec.totalCost.toLocaleString()} ฿</span>
+                        </div>
+                    </div>
+                `;
+                historyList.innerHTML += itemHtml;
+            });
+        }
+
+        function updateFilterNumbers(catKey) {
+            const filterNum = document.getElementById('filterNum');
+            filterNum.innerHTML = '<option value="all">-- ทั้งหมด --</option>';
+            if (catKey && machineNumbers[catKey]) {
+                machineNumbers[catKey].forEach(num => {
+                    filterNum.innerHTML += `<option value="${num}">${num}</option>`;
+                });
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('คุณต้องการลบประวัติการซ่อมทั้งหมดใช่หรือไม่?')) {
+                records = [];
+                saveData();
+                renderHistory();
+            }
+        }
+    </script>
 </body>
 </html>
