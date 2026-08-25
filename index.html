@@ -32,7 +32,7 @@
                 <i class="fa-solid fa-bolt text-amber-400 text-3xl animate-pulse"></i>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">ระบบบันทึกประวัติการซ่อมระบบไฟฟ้าเครื่องจักร</h1>
-                    <p class="text-xs text-slate-400 mt-1">เลือกรายการอุปกรณ์ไฟฟ้าอ้างอิงตาม Single Line / Circuit Diagram พร้อมระบบแยกค้นหาประวัติ</p>
+                    <p class="text-xs text-slate-400 mt-1">เลือกรักษาอุปกรณ์ไฟฟ้าอ้างอิงตาม Single Line / Circuit Diagram พร้อมระบบแยกค้นหาประวัติ</p>
                 </div>
             </div>
             <div class="flex items-center gap-4 bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
@@ -89,17 +89,6 @@
                         </div>
                     </div>
 
-                    <!-- Diagram Preview -->
-                    <div id="diagramContainer" class="hidden rounded-xl border border-slate-200 overflow-hidden bg-slate-900 text-white">
-                        <div class="bg-slate-800 px-4 py-2 text-xs font-medium flex justify-between items-center border-b border-slate-700">
-                            <span><i class="fa-solid fa-diagram-project text-amber-400 mr-1"></i> ผังวงจร Single Line / Circuit Diagram อ้างอิง</span>
-                            <span id="diagramTitle" class="text-amber-300"></span>
-                        </div>
-                        <div class="p-2 flex justify-center bg-slate-950/50">
-                            <img id="diagramImg" src="" alt="Circuit Diagram" class="max-h-48 object-contain rounded border border-slate-800">
-                        </div>
-                    </div>
-
                     <!-- Step 2: Select Replacement Parts -->
                     <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-100 space-y-3">
                         <div class="flex items-center justify-between">
@@ -110,7 +99,7 @@
                             <span class="text-xs text-amber-700">*คลิกเลือกได้มากกว่า 1 รายการ</span>
                         </div>
                         
-                        <div id="partsContainer" class="min-h-[120px] bg-white border border-slate-200 rounded-lg p-3 max-h-56 overflow-y-auto space-y-2">
+                        <div id="partsContainer" class="min-h-[120px] bg-white border border-slate-200 rounded-lg p-3 max-h-72 overflow-y-auto space-y-2">
                             <p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-hand-pointer mr-1"></i> กรุณายืนยันเลือกประเภทระบบในขั้นตอนที่ 1 ก่อน</p>
                         </div>
                     </div>
@@ -200,17 +189,11 @@
     </main>
 
     <script>
-        // --- 1. DEFAULT DATA CONFIGURATION (ปรับปรุงใหม่ตามคำขอ) ---
+        // --- 1. DEFAULT DATA CONFIGURATION ---
         const defaultCategories = {
             "overhead_crane": "Overhead Crane 10 Ton",
             "flying_bucket": "Flying Bucket",
             "carousel_system": "ระบบ Carousel"
-        };
-
-        const diagramImages = {
-            "overhead_crane": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=800&auto=format&fit=crop",
-            "flying_bucket": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop",
-            "carousel_system": "https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?q=80&w=800&auto=format&fit=crop"
         };
 
         const defaultNumbers = {
@@ -247,7 +230,6 @@
         let partsData = JSON.parse(localStorage.getItem('sys_parts_v2')) || defaultPartsData;
         let records = JSON.parse(localStorage.getItem('sys_records_v2')) || [];
 
-        // Save State Function
         function saveData() {
             localStorage.setItem('sys_categories_v2', JSON.stringify(categories));
             localStorage.setItem('sys_numbers_v2', JSON.stringify(machineNumbers));
@@ -255,7 +237,6 @@
             localStorage.setItem('sys_records_v2', JSON.stringify(records));
         }
 
-        // Reset Storage to New Setup Default (บังคับรีเซ็ตเริ่มต้นเป็นข้อมูลชุดใหม่นี้ทันที)
         function initStorageForce() {
             if (!localStorage.getItem('sys_initialized_v2')) {
                 localStorage.setItem('sys_categories_v2', JSON.stringify(defaultCategories));
@@ -299,16 +280,12 @@
             const catKey = document.getElementById('sysCategory').value;
             const numSelect = document.getElementById('sysNumber');
             const partsContainer = document.getElementById('partsContainer');
-            const diagramContainer = document.getElementById('diagramContainer');
-            const diagramImg = document.getElementById('diagramImg');
-            const diagramTitle = document.getElementById('diagramTitle');
 
             numSelect.innerHTML = '<option value="">-- เลือกเบอร์ --</option>';
             partsContainer.innerHTML = '';
             document.getElementById('totalCost').innerText = '0 บาท';
 
             if (!catKey) {
-                diagramContainer.classList.add('hidden');
                 partsContainer.innerHTML = '<p class="text-xs text-slate-400 text-center py-8"><i class="fa-solid fa-hand-pointer mr-1"></i> กรุณายืนยันเลือกประเภทระบบในขั้นตอนที่ 1 ก่อน</p>';
                 return;
             }
@@ -318,15 +295,6 @@
                 machineNumbers[catKey].forEach(num => {
                     numSelect.innerHTML += `<option value="${num}">${num}</option>`;
                 });
-            }
-
-            // Populate Diagram
-            if (diagramImages[catKey]) {
-                diagramImg.src = diagramImages[catKey];
-                diagramTitle.innerText = categories[catKey];
-                diagramContainer.classList.remove('hidden');
-            } else {
-                diagramContainer.classList.add('hidden');
             }
 
             // Populate Checkbox Parts
@@ -347,7 +315,6 @@
                 partsContainer.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">ไม่มีรายการอุปกรณ์ในระบบนี้ สามารถเพิ่มรายการได้ในเมนูด้านขวา</p>';
             }
 
-            // Update Filter Number options dynamically
             updateFilterNumbers(catKey);
         }
 
@@ -471,7 +438,6 @@
             saveData();
             renderHistory();
 
-            // Reset selection form
             document.getElementById('sysCategory').value = '';
             onCategoryChange();
             alert('บันทึกประวัติการซ่อมสำเร็จ!');
